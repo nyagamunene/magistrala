@@ -78,7 +78,7 @@ type Repository interface {
 	// RetrieveAll retrieves all clients.
 	RetrieveAll(ctx context.Context, pm Page) (ClientsPage, error)
 
-	// RetrieveAllBasicInfo list all clients only with basic information.
+	// SearchBasicInfo list all clients only with basic information.
 	SearchBasicInfo(ctx context.Context, pm Page) (ClientsPage, error)
 
 	// RetrieveAllByIDs retrieves for given client IDs .
