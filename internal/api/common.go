@@ -124,7 +124,6 @@ func EncodeError(_ context.Context, err error, w http.ResponseWriter) {
 		errors.Contains(err, errors.ErrMalformedEntity),
 		errors.Contains(err, apiutil.ErrMissingID),
 		errors.Contains(err, apiutil.ErrMissingName),
-		errors.Contains(err, apiutil.ErrMissingAlias),
 		errors.Contains(err, apiutil.ErrMissingEmail),
 		errors.Contains(err, apiutil.ErrMissingHost),
 		errors.Contains(err, apiutil.ErrInvalidResetPass),
@@ -159,7 +158,11 @@ func EncodeError(_ context.Context, err error, w http.ResponseWriter) {
 		errors.Contains(err, apiutil.ErrInvalidDirection),
 		errors.Contains(err, apiutil.ErrInvalidEntityType),
 		errors.Contains(err, apiutil.ErrMissingEntityType),
-		errors.Contains(err, apiutil.ErrInvalidTimeFormat):
+		errors.Contains(err, apiutil.ErrInvalidTimeFormat),
+		errors.Contains(err, apiutil.ErrEmptyMessage),
+		errors.Contains(err, apiutil.ErrEmptySearchQuery),
+		errors.Contains(err, apiutil.ErrLenSearchQuery),
+		errors.Contains(err, svcerr.ErrSearch):
 		err = unwrap(err)
 		w.WriteHeader(http.StatusBadRequest)
 
