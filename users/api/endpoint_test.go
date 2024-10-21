@@ -220,28 +220,30 @@ func TestRegisterClient(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		data := toJSON(tc.client)
-		req := testRequest{
-			client:      us.Client(),
-			method:      http.MethodPost,
-			url:         fmt.Sprintf("%s/users/", us.URL),
-			contentType: tc.contentType,
-			token:       tc.token,
-			body:        strings.NewReader(data),
-		}
+		t.Run(tc.desc, func(t *testing.T) {
+			data := toJSON(tc.client)
+			req := testRequest{
+				client:      us.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/users/", us.URL),
+				contentType: tc.contentType,
+				token:       tc.token,
+				body:        strings.NewReader(data),
+			}
 
-		svcCall := svc.On("RegisterClient", mock.Anything, mgauthn.Session{}, tc.client, true).Return(tc.client, tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		var errRes respBody
-		err = json.NewDecoder(res.Body).Decode(&errRes)
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
-		if errRes.Err != "" || errRes.Message != "" {
-			err = errors.Wrap(errors.New(errRes.Err), errors.New(errRes.Message))
-		}
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
+			svcCall := svc.On("RegisterClient", mock.Anything, mgauthn.Session{}, tc.client, true).Return(tc.client, tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			var errRes respBody
+			err = json.NewDecoder(res.Body).Decode(&errRes)
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
+			if errRes.Err != "" || errRes.Message != "" {
+				err = errors.Wrap(errors.New(errRes.Err), errors.New(errRes.Message))
+			}
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+		})
 	}
 }
 
@@ -295,27 +297,29 @@ func TestViewClient(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		req := testRequest{
-			client: us.Client(),
-			method: http.MethodGet,
-			url:    fmt.Sprintf("%s/users/%s", us.URL, tc.id),
-			token:  tc.token,
-		}
+		t.Run(tc.desc, func(t *testing.T) {
+			req := testRequest{
+				client: us.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/users/%s", us.URL, tc.id),
+				token:  tc.token,
+			}
 
-		authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
-		svcCall := svc.On("ViewClient", mock.Anything, tc.authnRes, tc.id).Return(mgclients.Client{}, tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		var errRes respBody
-		err = json.NewDecoder(res.Body).Decode(&errRes)
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
-		if errRes.Err != "" || errRes.Message != "" {
-			err = errors.Wrap(errors.New(errRes.Err), errors.New(errRes.Message))
-		}
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
-		authnCall.Unset()
+			authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
+			svcCall := svc.On("ViewClient", mock.Anything, tc.authnRes, tc.id).Return(mgclients.Client{}, tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			var errRes respBody
+			err = json.NewDecoder(res.Body).Decode(&errRes)
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
+			if errRes.Err != "" || errRes.Message != "" {
+				err = errors.Wrap(errors.New(errRes.Err), errors.New(errRes.Message))
+			}
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+			authnCall.Unset()
+		})
 	}
 }
 
@@ -361,27 +365,29 @@ func TestViewProfile(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		req := testRequest{
-			client: us.Client(),
-			method: http.MethodGet,
-			url:    fmt.Sprintf("%s/users/profile", us.URL),
-			token:  tc.token,
-		}
+		t.Run(tc.desc, func(t *testing.T) {
+			req := testRequest{
+				client: us.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/users/profile", us.URL),
+				token:  tc.token,
+			}
 
-		authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
-		svcCall := svc.On("ViewProfile", mock.Anything, tc.authnRes).Return(mgclients.Client{}, tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		var errRes respBody
-		err = json.NewDecoder(res.Body).Decode(&errRes)
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
-		if errRes.Err != "" || errRes.Message != "" {
-			err = errors.Wrap(errors.New(errRes.Err), errors.New(errRes.Message))
-		}
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
-		authnCall.Unset()
+			authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
+			svcCall := svc.On("ViewProfile", mock.Anything, tc.authnRes).Return(mgclients.Client{}, tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			var errRes respBody
+			err = json.NewDecoder(res.Body).Decode(&errRes)
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
+			if errRes.Err != "" || errRes.Message != "" {
+				err = errors.Wrap(errors.New(errRes.Err), errors.New(errRes.Message))
+			}
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+			authnCall.Unset()
+		})
 	}
 }
 
@@ -697,28 +703,30 @@ func TestListClients(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		req := testRequest{
-			client:      us.Client(),
-			method:      http.MethodGet,
-			url:         us.URL + "/users?" + tc.query,
-			contentType: contentType,
-			token:       tc.token,
-		}
+		t.Run(tc.desc, func(t *testing.T) {
+			req := testRequest{
+				client:      us.Client(),
+				method:      http.MethodGet,
+				url:         us.URL + "/users?" + tc.query,
+				contentType: contentType,
+				token:       tc.token,
+			}
 
-		authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
-		svcCall := svc.On("ListClients", mock.Anything, tc.authnRes, mock.Anything).Return(tc.listUsersResponse, tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		var bodyRes respBody
-		err = json.NewDecoder(res.Body).Decode(&bodyRes)
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
-		if bodyRes.Err != "" || bodyRes.Message != "" {
-			err = errors.Wrap(errors.New(bodyRes.Err), errors.New(bodyRes.Message))
-		}
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
-		authnCall.Unset()
+			authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
+			svcCall := svc.On("ListClients", mock.Anything, tc.authnRes, mock.Anything).Return(tc.listUsersResponse, tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			var bodyRes respBody
+			err = json.NewDecoder(res.Body).Decode(&bodyRes)
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
+			if bodyRes.Err != "" || bodyRes.Message != "" {
+				err = errors.Wrap(errors.New(bodyRes.Err), errors.New(bodyRes.Message))
+			}
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+			authnCall.Unset()
+		})
 	}
 }
 
@@ -824,25 +832,27 @@ func TestSearchUsers(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		req := testRequest{
-			client: us.Client(),
-			method: http.MethodGet,
-			url:    fmt.Sprintf("%s/users/search?", us.URL) + tc.query,
-			token:  tc.token,
-		}
+		t.Run(tc.desc, func(t *testing.T) {
+			req := testRequest{
+				client: us.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/users/search?", us.URL) + tc.query,
+				token:  tc.token,
+			}
 
-		authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(mgauthn.Session{UserID: validID, DomainID: validID}, tc.authnErr)
-		svcCall := svc.On("SearchUsers", mock.Anything, mock.Anything).Return(
-			mgclients.ClientsPage{
-				Page:    tc.listUsersResponse.Page,
-				Clients: tc.listUsersResponse.Clients,
-			},
-			tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
-		authnCall.Unset()
+			authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(mgauthn.Session{UserID: validID, DomainID: validID}, tc.authnErr)
+			svcCall := svc.On("SearchUsers", mock.Anything, mock.Anything).Return(
+				mgclients.ClientsPage{
+					Page:    tc.listUsersResponse.Page,
+					Clients: tc.listUsersResponse.Clients,
+				},
+				tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+			authnCall.Unset()
+		})
 	}
 }
 
@@ -958,28 +968,30 @@ func TestUpdateClient(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		req := testRequest{
-			client:      us.Client(),
-			method:      http.MethodPatch,
-			url:         fmt.Sprintf("%s/users/%s", us.URL, tc.id),
-			contentType: tc.contentType,
-			token:       tc.token,
-			body:        strings.NewReader(tc.data),
-		}
-		authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
-		svcCall := svc.On("UpdateClient", mock.Anything, tc.authnRes, mock.Anything).Return(tc.clientResponse, tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		var resBody respBody
-		err = json.NewDecoder(res.Body).Decode(&resBody)
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
-		if resBody.Err != "" || resBody.Message != "" {
-			err = errors.Wrap(errors.New(resBody.Err), errors.New(resBody.Message))
-		}
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
-		authnCall.Unset()
+		t.Run(tc.desc, func(t *testing.T) {
+			req := testRequest{
+				client:      us.Client(),
+				method:      http.MethodPatch,
+				url:         fmt.Sprintf("%s/users/%s", us.URL, tc.id),
+				contentType: tc.contentType,
+				token:       tc.token,
+				body:        strings.NewReader(tc.data),
+			}
+			authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
+			svcCall := svc.On("UpdateClient", mock.Anything, tc.authnRes, mock.Anything).Return(tc.clientResponse, tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			var resBody respBody
+			err = json.NewDecoder(res.Body).Decode(&resBody)
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
+			if resBody.Err != "" || resBody.Message != "" {
+				err = errors.Wrap(errors.New(resBody.Err), errors.New(resBody.Message))
+			}
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+			authnCall.Unset()
+		})
 	}
 }
 
@@ -1093,32 +1105,34 @@ func TestUpdateClientTags(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		req := testRequest{
-			client:      us.Client(),
-			method:      http.MethodPatch,
-			url:         fmt.Sprintf("%s/users/%s/tags", us.URL, tc.id),
-			contentType: tc.contentType,
-			token:       tc.token,
-			body:        strings.NewReader(tc.data),
-		}
+		t.Run(tc.desc, func(t *testing.T) {
+			req := testRequest{
+				client:      us.Client(),
+				method:      http.MethodPatch,
+				url:         fmt.Sprintf("%s/users/%s/tags", us.URL, tc.id),
+				contentType: tc.contentType,
+				token:       tc.token,
+				body:        strings.NewReader(tc.data),
+			}
 
-		authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
-		svcCall := svc.On("UpdateClientTags", mock.Anything, tc.authnRes, mock.Anything).Return(tc.clientResponse, tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		var resBody respBody
-		err = json.NewDecoder(res.Body).Decode(&resBody)
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
-		if resBody.Err != "" || resBody.Message != "" {
-			err = errors.Wrap(errors.New(resBody.Err), errors.New(resBody.Message))
-		}
-		if err == nil {
-			assert.Equal(t, tc.clientResponse.Tags, resBody.Tags, fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.clientResponse.Tags, resBody.Tags))
-		}
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
-		authnCall.Unset()
+			authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
+			svcCall := svc.On("UpdateClientTags", mock.Anything, tc.authnRes, mock.Anything).Return(tc.clientResponse, tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			var resBody respBody
+			err = json.NewDecoder(res.Body).Decode(&resBody)
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
+			if resBody.Err != "" || resBody.Message != "" {
+				err = errors.Wrap(errors.New(resBody.Err), errors.New(resBody.Message))
+			}
+			if err == nil {
+				assert.Equal(t, tc.clientResponse.Tags, resBody.Tags, fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.clientResponse.Tags, resBody.Tags))
+			}
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+			authnCall.Unset()
+		})
 	}
 }
 
@@ -1252,29 +1266,31 @@ func TestUpdateClientIdentity(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		req := testRequest{
-			client:      us.Client(),
-			method:      http.MethodPatch,
-			url:         fmt.Sprintf("%s/users/%s/identity", us.URL, tc.client.ID),
-			contentType: tc.contentType,
-			token:       tc.token,
-			body:        strings.NewReader(tc.data),
-		}
+		t.Run(tc.desc, func(t *testing.T) {
+			req := testRequest{
+				client:      us.Client(),
+				method:      http.MethodPatch,
+				url:         fmt.Sprintf("%s/users/%s/identity", us.URL, tc.client.ID),
+				contentType: tc.contentType,
+				token:       tc.token,
+				body:        strings.NewReader(tc.data),
+			}
 
-		authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
-		svcCall := svc.On("UpdateClientIdentity", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mgclients.Client{}, tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		var resBody respBody
-		err = json.NewDecoder(res.Body).Decode(&resBody)
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
-		if resBody.Err != "" || resBody.Message != "" {
-			err = errors.Wrap(errors.New(resBody.Err), errors.New(resBody.Message))
-		}
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
-		authnCall.Unset()
+			authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
+			svcCall := svc.On("UpdateClientIdentity", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mgclients.Client{}, tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			var resBody respBody
+			err = json.NewDecoder(res.Body).Decode(&resBody)
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
+			if resBody.Err != "" || resBody.Message != "" {
+				err = errors.Wrap(errors.New(resBody.Err), errors.New(resBody.Message))
+			}
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+			authnCall.Unset()
+		})
 	}
 }
 
@@ -1356,21 +1372,23 @@ func TestPasswordResetRequest(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		req := testRequest{
-			client:      us.Client(),
-			method:      http.MethodPost,
-			url:         fmt.Sprintf("%s/password/reset-request", us.URL),
-			contentType: tc.contentType,
-			referer:     tc.referer,
-			body:        strings.NewReader(tc.data),
-		}
-		svcCall := svc.On("GenerateResetToken", mock.Anything, mock.Anything, mock.Anything).Return(tc.generateErr)
-		svcCall1 := svc.On("SendPasswordReset", mock.Anything, mock.Anything, mock.Anything, mock.Anything, validToken).Return(tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
-		svcCall1.Unset()
+		t.Run(tc.desc, func(t *testing.T) {
+			req := testRequest{
+				client:      us.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/password/reset-request", us.URL),
+				contentType: tc.contentType,
+				referer:     tc.referer,
+				body:        strings.NewReader(tc.data),
+			}
+			svcCall := svc.On("GenerateResetToken", mock.Anything, mock.Anything, mock.Anything).Return(tc.generateErr)
+			svcCall1 := svc.On("SendPasswordReset", mock.Anything, mock.Anything, mock.Anything, mock.Anything, validToken).Return(tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+			svcCall1.Unset()
+		})
 	}
 }
 
@@ -1450,22 +1468,24 @@ func TestPasswordReset(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		req := testRequest{
-			client:      us.Client(),
-			method:      http.MethodPut,
-			url:         fmt.Sprintf("%s/password/reset", us.URL),
-			contentType: tc.contentType,
-			referer:     testReferer,
-			token:       tc.token,
-			body:        strings.NewReader(tc.data),
-		}
-		authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
-		svcCall := svc.On("ResetSecret", mock.Anything, tc.authnRes, mock.Anything).Return(tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
-		authnCall.Unset()
+		t.Run(tc.desc, func(t *testing.T) {
+			req := testRequest{
+				client:      us.Client(),
+				method:      http.MethodPut,
+				url:         fmt.Sprintf("%s/password/reset", us.URL),
+				contentType: tc.contentType,
+				referer:     testReferer,
+				token:       tc.token,
+				body:        strings.NewReader(tc.data),
+			}
+			authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
+			svcCall := svc.On("ResetSecret", mock.Anything, tc.authnRes, mock.Anything).Return(tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+			authnCall.Unset()
+		})
 	}
 }
 
@@ -1557,29 +1577,31 @@ func TestUpdateClientRole(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		req := testRequest{
-			client:      us.Client(),
-			method:      http.MethodPatch,
-			url:         fmt.Sprintf("%s/users/%s/role", us.URL, tc.clientID),
-			contentType: tc.contentType,
-			token:       tc.token,
-			body:        strings.NewReader(tc.data),
-		}
+		t.Run(tc.desc, func(t *testing.T) {
+			req := testRequest{
+				client:      us.Client(),
+				method:      http.MethodPatch,
+				url:         fmt.Sprintf("%s/users/%s/role", us.URL, tc.clientID),
+				contentType: tc.contentType,
+				token:       tc.token,
+				body:        strings.NewReader(tc.data),
+			}
 
-		authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
-		svcCall := svc.On("UpdateClientRole", mock.Anything, tc.authnRes, mock.Anything).Return(mgclients.Client{}, tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		var resBody respBody
-		err = json.NewDecoder(res.Body).Decode(&resBody)
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
-		if resBody.Err != "" || resBody.Message != "" {
-			err = errors.Wrap(errors.New(resBody.Err), errors.New(resBody.Message))
-		}
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
-		authnCall.Unset()
+			authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
+			svcCall := svc.On("UpdateClientRole", mock.Anything, tc.authnRes, mock.Anything).Return(mgclients.Client{}, tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			var resBody respBody
+			err = json.NewDecoder(res.Body).Decode(&resBody)
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
+			if resBody.Err != "" || resBody.Message != "" {
+				err = errors.Wrap(errors.New(resBody.Err), errors.New(resBody.Message))
+			}
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+			authnCall.Unset()
+		})
 	}
 }
 
@@ -1694,29 +1716,31 @@ func TestUpdateClientSecret(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		req := testRequest{
-			client:      us.Client(),
-			method:      http.MethodPatch,
-			url:         fmt.Sprintf("%s/users/secret", us.URL),
-			contentType: tc.contentType,
-			token:       tc.token,
-			body:        strings.NewReader(tc.data),
-		}
+		t.Run(tc.desc, func(t *testing.T) {
+			req := testRequest{
+				client:      us.Client(),
+				method:      http.MethodPatch,
+				url:         fmt.Sprintf("%s/users/secret", us.URL),
+				contentType: tc.contentType,
+				token:       tc.token,
+				body:        strings.NewReader(tc.data),
+			}
 
-		authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
-		svcCall := svc.On("UpdateClientSecret", mock.Anything, tc.authnRes, mock.Anything, mock.Anything).Return(tc.client, tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		var resBody respBody
-		err = json.NewDecoder(res.Body).Decode(&resBody)
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
-		if resBody.Err != "" || resBody.Message != "" {
-			err = errors.Wrap(errors.New(resBody.Err), errors.New(resBody.Message))
-		}
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
-		authnCall.Unset()
+			authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
+			svcCall := svc.On("UpdateClientSecret", mock.Anything, tc.authnRes, mock.Anything, mock.Anything).Return(tc.client, tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			var resBody respBody
+			err = json.NewDecoder(res.Body).Decode(&resBody)
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
+			if resBody.Err != "" || resBody.Message != "" {
+				err = errors.Wrap(errors.New(resBody.Err), errors.New(resBody.Message))
+			}
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+			authnCall.Unset()
+		})
 	}
 }
 
@@ -1785,28 +1809,30 @@ func TestIssueToken(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		req := testRequest{
-			client:      us.Client(),
-			method:      http.MethodPost,
-			url:         fmt.Sprintf("%s/users/tokens/issue", us.URL),
-			contentType: tc.contentType,
-			body:        strings.NewReader(tc.data),
-		}
-
-		svcCall := svc.On("IssueToken", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&magistrala.Token{AccessToken: validToken}, tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		if tc.err != nil {
-			var resBody respBody
-			err = json.NewDecoder(res.Body).Decode(&resBody)
-			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
-			if resBody.Err != "" || resBody.Message != "" {
-				err = errors.Wrap(errors.New(resBody.Err), errors.New(resBody.Message))
+		t.Run(tc.desc, func(t *testing.T) {
+			req := testRequest{
+				client:      us.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/users/tokens/issue", us.URL),
+				contentType: tc.contentType,
+				body:        strings.NewReader(tc.data),
 			}
-			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
-		}
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
+
+			svcCall := svc.On("IssueToken", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&magistrala.Token{AccessToken: validToken}, tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			if tc.err != nil {
+				var resBody respBody
+				err = json.NewDecoder(res.Body).Decode(&resBody)
+				assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
+				if resBody.Err != "" || resBody.Message != "" {
+					err = errors.Wrap(errors.New(resBody.Err), errors.New(resBody.Message))
+				}
+				assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+			}
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+		})
 	}
 }
 
@@ -1881,30 +1907,32 @@ func TestRefreshToken(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		req := testRequest{
-			client:      us.Client(),
-			method:      http.MethodPost,
-			url:         fmt.Sprintf("%s/users/tokens/refresh", us.URL),
-			contentType: tc.contentType,
-			body:        strings.NewReader(tc.data),
-			token:       tc.token,
-		}
-		authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
-		svcCall := svc.On("RefreshToken", mock.Anything, tc.authnRes, tc.token, mock.Anything).Return(&magistrala.Token{AccessToken: validToken}, tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		if tc.err != nil {
-			var resBody respBody
-			err = json.NewDecoder(res.Body).Decode(&resBody)
-			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
-			if resBody.Err != "" || resBody.Message != "" {
-				err = errors.Wrap(errors.New(resBody.Err), errors.New(resBody.Message))
+		t.Run(tc.desc, func(t *testing.T) {
+			req := testRequest{
+				client:      us.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/users/tokens/refresh", us.URL),
+				contentType: tc.contentType,
+				body:        strings.NewReader(tc.data),
+				token:       tc.token,
 			}
-			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
-		}
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
-		authnCall.Unset()
+			authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
+			svcCall := svc.On("RefreshToken", mock.Anything, tc.authnRes, tc.token, mock.Anything).Return(&magistrala.Token{AccessToken: validToken}, tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			if tc.err != nil {
+				var resBody respBody
+				err = json.NewDecoder(res.Body).Decode(&resBody)
+				assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
+				if resBody.Err != "" || resBody.Message != "" {
+					err = errors.Wrap(errors.New(resBody.Err), errors.New(resBody.Message))
+				}
+				assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+			}
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+			authnCall.Unset()
+		})
 	}
 }
 
@@ -1966,32 +1994,34 @@ func TestEnableClient(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		data := toJSON(tc.client)
-		req := testRequest{
-			client:      us.Client(),
-			method:      http.MethodPost,
-			url:         fmt.Sprintf("%s/users/%s/enable", us.URL, tc.client.ID),
-			contentType: contentType,
-			token:       tc.token,
-			body:        strings.NewReader(data),
-		}
-
-		authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
-		svcCall := svc.On("EnableClient", mock.Anything, tc.authnRes, mock.Anything).Return(mgclients.Client{}, tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		if tc.err != nil {
-			var resBody respBody
-			err = json.NewDecoder(res.Body).Decode(&resBody)
-			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
-			if resBody.Err != "" || resBody.Message != "" {
-				err = errors.Wrap(errors.New(resBody.Err), errors.New(resBody.Message))
+		t.Run(tc.desc, func(t *testing.T) {
+			data := toJSON(tc.client)
+			req := testRequest{
+				client:      us.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/users/%s/enable", us.URL, tc.client.ID),
+				contentType: contentType,
+				token:       tc.token,
+				body:        strings.NewReader(data),
 			}
-			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
-		}
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
-		authnCall.Unset()
+
+			authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
+			svcCall := svc.On("EnableClient", mock.Anything, tc.authnRes, mock.Anything).Return(mgclients.Client{}, tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			if tc.err != nil {
+				var resBody respBody
+				err = json.NewDecoder(res.Body).Decode(&resBody)
+				assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
+				if resBody.Err != "" || resBody.Message != "" {
+					err = errors.Wrap(errors.New(resBody.Err), errors.New(resBody.Message))
+				}
+				assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+			}
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+			authnCall.Unset()
+		})
 	}
 }
 
@@ -2054,23 +2084,25 @@ func TestDisableClient(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		data := toJSON(tc.client)
-		req := testRequest{
-			client:      us.Client(),
-			method:      http.MethodPost,
-			url:         fmt.Sprintf("%s/users/%s/disable", us.URL, tc.client.ID),
-			contentType: contentType,
-			token:       tc.token,
-			body:        strings.NewReader(data),
-		}
+		t.Run(tc.desc, func(t *testing.T) {
+			data := toJSON(tc.client)
+			req := testRequest{
+				client:      us.Client(),
+				method:      http.MethodPost,
+				url:         fmt.Sprintf("%s/users/%s/disable", us.URL, tc.client.ID),
+				contentType: contentType,
+				token:       tc.token,
+				body:        strings.NewReader(data),
+			}
 
-		authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
-		svcCall := svc.On("DisableClient", mock.Anything, mock.Anything, mock.Anything).Return(mgclients.Client{}, tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
-		authnCall.Unset()
+			authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
+			svcCall := svc.On("DisableClient", mock.Anything, mock.Anything, mock.Anything).Return(mgclients.Client{}, tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+			authnCall.Unset()
+		})
 	}
 }
 
@@ -2120,22 +2152,24 @@ func TestDeleteClient(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		data := toJSON(tc.client)
-		req := testRequest{
-			client:      us.Client(),
-			method:      http.MethodDelete,
-			url:         fmt.Sprintf("%s/users/%s", us.URL, tc.client.ID),
-			contentType: contentType,
-			token:       tc.token,
-			body:        strings.NewReader(data),
-		}
-		authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
-		repoCall := svc.On("DeleteClient", mock.Anything, tc.authnRes, tc.client.ID).Return(tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		repoCall.Unset()
-		authnCall.Unset()
+		t.Run(tc.desc, func(t *testing.T) {
+			data := toJSON(tc.client)
+			req := testRequest{
+				client:      us.Client(),
+				method:      http.MethodDelete,
+				url:         fmt.Sprintf("%s/users/%s", us.URL, tc.client.ID),
+				contentType: contentType,
+				token:       tc.token,
+				body:        strings.NewReader(data),
+			}
+			authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
+			repoCall := svc.On("DeleteClient", mock.Anything, tc.authnRes, tc.client.ID).Return(tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			repoCall.Unset()
+			authnCall.Unset()
+		})
 	}
 }
 
@@ -2443,24 +2477,26 @@ func TestListUsersByUserGroupId(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		req := testRequest{
-			client: us.Client(),
-			method: http.MethodGet,
-			url:    fmt.Sprintf("%s/domains/%s/groups/%s/users?", us.URL, validID, tc.groupID) + tc.query,
-			token:  tc.token,
-		}
-		authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
-		svcCall := svc.On("ListMembers", mock.Anything, mgauthn.Session{UserID: validID, DomainID: validID}, mock.Anything, mock.Anything, mock.Anything).Return(
-			mgclients.MembersPage{
-				Page:    tc.listUsersResponse.Page,
-				Members: tc.listUsersResponse.Clients,
-			},
-			tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
-		authnCall.Unset()
+		t.Run(tc.desc, func(t *testing.T) {
+			req := testRequest{
+				client: us.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/domains/%s/groups/%s/users?", us.URL, validID, tc.groupID) + tc.query,
+				token:  tc.token,
+			}
+			authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
+			svcCall := svc.On("ListMembers", mock.Anything, mgauthn.Session{UserID: validID, DomainID: validID, DomainUserID: validID + "_" + validID}, mock.Anything, mock.Anything, mock.Anything).Return(
+				mgclients.MembersPage{
+					Page:    tc.listUsersResponse.Page,
+					Members: tc.listUsersResponse.Clients,
+				},
+				tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+			authnCall.Unset()
+		})
 	}
 }
 
@@ -2778,25 +2814,27 @@ func TestListUsersByChannelID(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		req := testRequest{
-			client: us.Client(),
-			method: http.MethodGet,
-			url:    fmt.Sprintf("%s/domains/%s/channels/%s/users?", us.URL, validID, validID) + tc.query,
-			token:  tc.token,
-		}
+		t.Run(tc.desc, func(t *testing.T) {
+			req := testRequest{
+				client: us.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/domains/%s/channels/%s/users?", us.URL, validID, validID) + tc.query,
+				token:  tc.token,
+			}
 
-		authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
-		svcCall := svc.On("ListMembers", mock.Anything, mgauthn.Session{UserID: validID, DomainID: validID}, mock.Anything, mock.Anything, mock.Anything).Return(
-			mgclients.MembersPage{
-				Page:    tc.listUsersResponse.Page,
-				Members: tc.listUsersResponse.Clients,
-			},
-			tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
-		authnCall.Unset()
+			authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
+			svcCall := svc.On("ListMembers", mock.Anything, mgauthn.Session{UserID: validID, DomainID: validID, DomainUserID: validID + "_" + validID}, mock.Anything, mock.Anything, mock.Anything).Return(
+				mgclients.MembersPage{
+					Page:    tc.listUsersResponse.Page,
+					Members: tc.listUsersResponse.Clients,
+				},
+				tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+			authnCall.Unset()
+		})
 	}
 }
 
@@ -3120,25 +3158,27 @@ func TestListUsersByDomainID(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		req := testRequest{
-			client: us.Client(),
-			method: http.MethodGet,
-			url:    fmt.Sprintf("%s/domains/%s/users?", us.URL, validID) + tc.query,
-			token:  tc.token,
-		}
+		t.Run(tc.desc, func(t *testing.T) {
+			req := testRequest{
+				client: us.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/domains/%s/users?", us.URL, validID) + tc.query,
+				token:  tc.token,
+			}
 
-		authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
-		svcCall := svc.On("ListMembers", mock.Anything, mgauthn.Session{UserID: validID, DomainID: validID}, mock.Anything, mock.Anything, mock.Anything).Return(
-			mgclients.MembersPage{
-				Page:    tc.listUsersResponse.Page,
-				Members: tc.listUsersResponse.Clients,
-			},
-			tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
-		authnCall.Unset()
+			authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
+			svcCall := svc.On("ListMembers", mock.Anything, mgauthn.Session{UserID: validID, DomainID: validID, DomainUserID: validID + "_" + validID}, mock.Anything, mock.Anything, mock.Anything).Return(
+				mgclients.MembersPage{
+					Page:    tc.listUsersResponse.Page,
+					Members: tc.listUsersResponse.Clients,
+				},
+				tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+			authnCall.Unset()
+		})
 	}
 }
 
@@ -3432,25 +3472,27 @@ func TestListUsersByThingID(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		req := testRequest{
-			client: us.Client(),
-			method: http.MethodGet,
-			url:    fmt.Sprintf("%s/domains/%s/things/%s/users?", us.URL, validID, validID) + tc.query,
-			token:  tc.token,
-		}
+		t.Run(tc.desc, func(t *testing.T) {
+			req := testRequest{
+				client: us.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/domains/%s/things/%s/users?", us.URL, validID, validID) + tc.query,
+				token:  tc.token,
+			}
 
-		authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
-		svcCall := svc.On("ListMembers", mock.Anything, mgauthn.Session{UserID: validID, DomainID: validID}, mock.Anything, mock.Anything, mock.Anything).Return(
-			mgclients.MembersPage{
-				Page:    tc.listUsersResponse.Page,
-				Members: tc.listUsersResponse.Clients,
-			},
-			tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
-		authnCall.Unset()
+			authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
+			svcCall := svc.On("ListMembers", mock.Anything, mgauthn.Session{UserID: validID, DomainID: validID, DomainUserID: validID + "_" + validID}, mock.Anything, mock.Anything, mock.Anything).Return(
+				mgclients.MembersPage{
+					Page:    tc.listUsersResponse.Page,
+					Members: tc.listUsersResponse.Clients,
+				},
+				tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+			authnCall.Unset()
+		})
 	}
 }
 
@@ -3547,21 +3589,23 @@ func TestAssignUsers(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		data := toJSON(tc.reqBody)
-		req := testRequest{
-			client: us.Client(),
-			method: http.MethodPost,
-			url:    fmt.Sprintf("%s/domains/%s/groups/%s/users/assign", us.URL, tc.domainID, tc.groupID),
-			token:  tc.token,
-			body:   strings.NewReader(data),
-		}
-		authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
-		svcCall := gsvc.On("Assign", mock.Anything, tc.authnRes, tc.groupID, mock.Anything, "users", mock.Anything).Return(tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
-		authnCall.Unset()
+		t.Run(tc.desc, func(t *testing.T) {
+			data := toJSON(tc.reqBody)
+			req := testRequest{
+				client: us.Client(),
+				method: http.MethodPost,
+				url:    fmt.Sprintf("%s/domains/%s/groups/%s/users/assign", us.URL, tc.domainID, tc.groupID),
+				token:  tc.token,
+				body:   strings.NewReader(data),
+			}
+			authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
+			svcCall := gsvc.On("Assign", mock.Anything, tc.authnRes, tc.groupID, mock.Anything, "users", mock.Anything).Return(tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+			authnCall.Unset()
+		})
 	}
 }
 
@@ -3657,22 +3701,24 @@ func TestUnassignUsers(t *testing.T) {
 		},
 	}
 	for _, tc := range cases {
-		data := toJSON(tc.reqBody)
-		req := testRequest{
-			client: us.Client(),
-			method: http.MethodPost,
-			url:    fmt.Sprintf("%s/domains/%s/groups/%s/users/unassign", us.URL, tc.domainID, tc.groupID),
-			token:  tc.token,
-			body:   strings.NewReader(data),
-		}
+		t.Run(tc.desc, func(t *testing.T) {
+			data := toJSON(tc.reqBody)
+			req := testRequest{
+				client: us.Client(),
+				method: http.MethodPost,
+				url:    fmt.Sprintf("%s/domains/%s/groups/%s/users/unassign", us.URL, tc.domainID, tc.groupID),
+				token:  tc.token,
+				body:   strings.NewReader(data),
+			}
 
-		authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
-		svcCall := gsvc.On("Unassign", mock.Anything, tc.authnRes, tc.groupID, mock.Anything, "users", mock.Anything).Return(tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
-		authnCall.Unset()
+			authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
+			svcCall := gsvc.On("Unassign", mock.Anything, tc.authnRes, tc.groupID, mock.Anything, "users", mock.Anything).Return(tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+			authnCall.Unset()
+		})
 	}
 }
 
@@ -3763,22 +3809,24 @@ func TestAssignGroups(t *testing.T) {
 		},
 	}
 	for _, tc := range cases {
-		data := toJSON(tc.reqBody)
-		req := testRequest{
-			client: us.Client(),
-			method: http.MethodPost,
-			url:    fmt.Sprintf("%s/domains/%s/groups/%s/groups/assign", us.URL, tc.domainID, tc.groupID),
-			token:  tc.token,
-			body:   strings.NewReader(data),
-		}
+		t.Run(tc.desc, func(t *testing.T) {
+			data := toJSON(tc.reqBody)
+			req := testRequest{
+				client: us.Client(),
+				method: http.MethodPost,
+				url:    fmt.Sprintf("%s/domains/%s/groups/%s/groups/assign", us.URL, tc.domainID, tc.groupID),
+				token:  tc.token,
+				body:   strings.NewReader(data),
+			}
 
-		authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
-		svcCall := gsvc.On("Assign", mock.Anything, tc.authnRes, tc.groupID, mock.Anything, "groups", mock.Anything).Return(tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
-		authnCall.Unset()
+			authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
+			svcCall := gsvc.On("Assign", mock.Anything, tc.authnRes, tc.groupID, mock.Anything, "groups", mock.Anything).Return(tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+			authnCall.Unset()
+		})
 	}
 }
 
@@ -3867,22 +3915,24 @@ func TestUnassignGroups(t *testing.T) {
 		},
 	}
 	for _, tc := range cases {
-		data := toJSON(tc.reqBody)
-		req := testRequest{
-			client: us.Client(),
-			method: http.MethodPost,
-			url:    fmt.Sprintf("%s/domains/%s/groups/%s/groups/unassign", us.URL, tc.domainID, tc.groupID),
-			token:  tc.token,
-			body:   strings.NewReader(data),
-		}
+		t.Run(tc.desc, func(t *testing.T) {
+			data := toJSON(tc.reqBody)
+			req := testRequest{
+				client: us.Client(),
+				method: http.MethodPost,
+				url:    fmt.Sprintf("%s/domains/%s/groups/%s/groups/unassign", us.URL, tc.domainID, tc.groupID),
+				token:  tc.token,
+				body:   strings.NewReader(data),
+			}
 
-		authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
-		svcCall := gsvc.On("Unassign", mock.Anything, mock.Anything, tc.groupID, mock.Anything, "groups", mock.Anything).Return(tc.err)
-		res, err := req.make()
-		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		svcCall.Unset()
-		authnCall.Unset()
+			authnCall := authn.On("Authenticate", mock.Anything, tc.token).Return(tc.authnRes, tc.authnErr)
+			svcCall := gsvc.On("Unassign", mock.Anything, mock.Anything, tc.groupID, mock.Anything, "groups", mock.Anything).Return(tc.err)
+			res, err := req.make()
+			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
+			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
+			svcCall.Unset()
+			authnCall.Unset()
+		})
 	}
 }
 
